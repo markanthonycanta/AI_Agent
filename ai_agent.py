@@ -17,29 +17,37 @@ logging.getLogger("chromadb").setLevel(logging.ERROR)
 app = FastAPI()
 
 # ----------------------------
-# Load Google Drive credentials from Railway environment variable
+# Approach #2: Read each credential field from separate environment variables
+# ----------------------------
 
-# Debugging print statement
-print("Checking GOOGLE_DRIVE_CREDENTIALS environment variable...")
-SERVICE_ACCOUNT_INFO = os.getenv("GOOGLE_DRIVE_CREDENTIALS")
+creds_dict = {
+    "type": os.getenv("type"),
+    "project_id": os.getenv("project_id"),
+    "private_key_id": os.getenv("private_key_id"),
+    # Convert the escaped newlines "\\n" to actual newlines "\n"
+    "private_key": os.getenv("private_key", "").replace("\\n", "\n"),
+    "client_email": os.getenv("client_email"),
+    "client_id": os.getenv("client_id"),
+    "auth_uri": os.getenv("auth_uri"),
+    "token_uri": os.getenv("token_uri"),
+    "auth_provider_x509_cert_url": os.getenv("auth_provider_x509_cert_url"),
+    "client_x509_cert_url": os.getenv("client_x509_cert_url"),
+    "universe_domain": os.getenv("universe_domain"),
+}
 
-if not SERVICE_ACCOUNT_INFO:
-    print("GOOGLE_DRIVE_CREDENTIALS is not set or is empty!")
-    raise ValueError("GOOGLE_DRIVE_CREDENTIALS not found in environment variables!")
+# Quick sanity check for the private key (usually the trickiest part)
+if not creds_dict["private_key"]:
+    raise ValueError("Missing or empty 'private_key' environment variable.")
 
-print("GOOGLE_DRIVE_CREDENTIALS found:", SERVICE_ACCOUNT_INFO)
+print("Loaded service account info from separate environment variables.")
 
-# Fix newline issue in the private key
-creds_dict = json.loads(SERVICE_ACCOUNT_INFO)
-creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
-
-# Load credentials from modified JSON
+# Create credentials object
 creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/drive'])
-
 print("Google Drive credentials loaded successfully!")
 
 # Initialize Google Drive service
 drive_service = build('drive', 'v3', credentials=creds)
+print("Google Drive service initialized.")
 
 # ----------------------------
 # ChromaDB Configuration
@@ -51,12 +59,12 @@ metadata_collection = chroma_client.get_or_create_collection("metadata")
 # ----------------------------
 # Gemini API Configuration
 # ----------------------------
-GEMINI_API_KEY = "AIzaSyAp4kj7syRvuC4_32iaUEJ2iSv53GmT42E"  # Replace with your API key
+GEMINI_API_KEY = "AIzaSyAp4kj7syRvuC4_32iaUEJ2iSv53GmT42E"  # Replace with your actual API key
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-2.0-flash')
 
 # ----------------------------
-# Request Models
+# Request Model
 # ----------------------------
 class QueryRequest(BaseModel):
     user_input: str
