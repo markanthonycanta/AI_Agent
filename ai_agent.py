@@ -5,6 +5,7 @@ import docx
 import os
 import json
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
