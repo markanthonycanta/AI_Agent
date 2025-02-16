@@ -16,12 +16,14 @@ logging.getLogger("chromadb").setLevel(logging.ERROR)
 app = FastAPI()
 
 # ----------------------------
-# Google Drive API Configuration
-# ----------------------------
-DRIVE_SCOPES = ['https://www.googleapis.com/auth/drive']
-SERVICE_ACCOUNT_FILE = "C:/Users/ACER/Desktop/AI AGENT/google_drive.json"  # Update path
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=DRIVE_SCOPES)
-drive_service = build('drive', 'v3', credentials=creds)
+# Load Google Drive credentials from Railway environment variable
+SERVICE_ACCOUNT_INFO = os.getenv("GOOGLE_DRIVE_CREDENTIALS")
+
+if SERVICE_ACCOUNT_INFO:
+    creds_dict = json.loads(SERVICE_ACCOUNT_INFO)  # Convert JSON string back to dictionary
+    creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/drive'])
+else:
+    raise ValueError("GOOGLE_DRIVE_CREDENTIALS not found in environment variables!")
 
 # ----------------------------
 # ChromaDB Configuration
