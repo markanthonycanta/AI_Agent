@@ -17,14 +17,22 @@ app = FastAPI()
 
 # ----------------------------
 # Load Google Drive credentials from Railway environment variable
+# Debugging print statement
+print("Checking GOOGLE_DRIVE_CREDENTIALS environment variable...")
+
 SERVICE_ACCOUNT_INFO = os.getenv("GOOGLE_DRIVE_CREDENTIALS")
 
-if SERVICE_ACCOUNT_INFO:
-    creds_dict = json.loads(SERVICE_ACCOUNT_INFO)  # Convert JSON string back to dictionary
-    creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/drive'])
-else:
+if not SERVICE_ACCOUNT_INFO:
     raise ValueError("GOOGLE_DRIVE_CREDENTIALS not found in environment variables!")
 
+# Fix newline issue in the private key
+creds_dict = json.loads(SERVICE_ACCOUNT_INFO)
+creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+
+# Load credentials from modified JSON
+creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/drive'])
+
+print("Google Drive credentials loaded successfully!")
 # ----------------------------
 # ChromaDB Configuration
 # ----------------------------
