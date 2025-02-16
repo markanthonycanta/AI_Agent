@@ -188,7 +188,6 @@ def query_gemini(prompt):
 #     else:
 #         prompt = f"Answer based on general knowledge:\n\nQuestion: {user_input}\n\nAnswer:"
 #     return query_gemini(prompt)
-
 last_question = None
 
 def chat_with_ai(user_input):
@@ -220,7 +219,9 @@ def chat_with_ai(user_input):
         )
         answer = query_gemini(prompt)
         # Check if the answer is unsatisfactory.
-        if ("does not contain any information" in answer.lower() or len(answer.split()) < 5):
+        if (("does not contain any information" in answer.lower() or 
+             "doesnt contain any information" in answer.lower()) or 
+            len(answer.split()) < 5):
             last_question = user_input
             return ("The provided text does not contain sufficient information to answer your question. "
                     "Do you want me to answer based on my general knowledge?")
@@ -230,6 +231,7 @@ def chat_with_ai(user_input):
         # No relevant context found; ask for confirmation.
         last_question = user_input
         return "No relevant context found. Do you want me to answer based on my general knowledge?"
+
 
 # ----------------------------
 # FastAPI Endpoints
