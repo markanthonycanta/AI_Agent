@@ -18,13 +18,16 @@ app = FastAPI()
 
 # ----------------------------
 # Load Google Drive credentials from Railway environment variable
+
 # Debugging print statement
 print("Checking GOOGLE_DRIVE_CREDENTIALS environment variable...")
-
 SERVICE_ACCOUNT_INFO = os.getenv("GOOGLE_DRIVE_CREDENTIALS")
 
 if not SERVICE_ACCOUNT_INFO:
+    print("GOOGLE_DRIVE_CREDENTIALS is not set or is empty!")
     raise ValueError("GOOGLE_DRIVE_CREDENTIALS not found in environment variables!")
+
+print("GOOGLE_DRIVE_CREDENTIALS found:", SERVICE_ACCOUNT_INFO)
 
 # Fix newline issue in the private key
 creds_dict = json.loads(SERVICE_ACCOUNT_INFO)
