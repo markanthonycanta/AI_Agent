@@ -16,6 +16,19 @@ logging.getLogger("chromadb").setLevel(logging.ERROR)
 # Initialize FastAPI app
 app = FastAPI()
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For development, allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def root():
+    return {"message": "AI Agent is running!"}
+
 # ----------------------------
 # Approach #2: Read each credential field from separate environment variables
 # ----------------------------
