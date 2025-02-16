@@ -37,6 +37,10 @@ creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
 creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/drive'])
 
 print("Google Drive credentials loaded successfully!")
+
+# Initialize Google Drive service
+drive_service = build('drive', 'v3', credentials=creds)
+
 # ----------------------------
 # ChromaDB Configuration
 # ----------------------------
