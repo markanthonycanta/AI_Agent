@@ -180,14 +180,56 @@ def query_gemini(prompt):
     response = model.generate_content(prompt)
     return response.text
 
+# def chat_with_ai(user_input):
+#     context_chunks = search_documents(user_input, n_results=3)
+#     if context_chunks and any(chunk.strip() for chunk in context_chunks):
+#         context = "\n---\n".join(context_chunks)
+#         prompt = f"Use this context to answer:\n{context}\n\nQuestion: {user_input}\n\nAnswer:"
+#     else:
+#         prompt = f"Answer based on general knowledge:\n\nQuestion: {user_input}\n\nAnswer:"
+#     return query_gemini(prompt)
+
+last_question = None
+
 def chat_with_ai(user_input):
+    global last_question
+    # List of confirmation responses (case-insensitive)
+    confirmation_responses = ["yes", "yeah", "okay", "ok", "sure", "yup"]
+
+    # If the input is a confirmation for a pending question, answer based on general knowledge.
+    if last_question is not None and user_input.lower().strip() in confirmation_responses:
+        prompt = (
+            f"Answer based on general knowledge:\n\n"
+            f"Question: {last_question}\n\n"
+            f"Answer:"
+        )
+        answer = query_gemini(prompt)
+        last_question = None  # Clear pending question after answering.
+        return answer
+
+    # Retrieve context chunks from ChromaDB.
     context_chunks = search_documents(user_input, n_results=3)
     if context_chunks and any(chunk.strip() for chunk in context_chunks):
         context = "\n---\n".join(context_chunks)
-        prompt = f"Use this context to answer:\n{context}\n\nQuestion: {user_input}\n\nAnswer:"
+        prompt = (
+            f"Use the following context to answer the question. "
+            f"If the context lacks sufficient detail, supplement your answer using your own knowledge.\n\n"
+            f"Context:\n{context}\n\n"
+            f"Question: {user_input}\n\n"
+            f"Answer:"
+        )
+        answer = query_gemini(prompt)
+        # Check if the answer is unsatisfactory.
+        if ("does not contain any information" in answer.lower() or len(answer.split()) < 5):
+            last_question = user_input
+            return ("The provided text does not contain sufficient information to answer your question. "
+                    "Do you want me to answer based on my general knowledge?")
+        else:
+            return answer
     else:
-        prompt = f"Answer based on general knowledge:\n\nQuestion: {user_input}\n\nAnswer:"
-    return query_gemini(prompt)
+        # No relevant context found; ask for confirmation.
+        last_question = user_input
+        return "No relevant context found. Do you want me to answer based on my general knowledge?"
 
 # ----------------------------
 # FastAPI Endpoints
